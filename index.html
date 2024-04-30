@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Guess the World</title>
+    <link href="stlye.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+      <div class="content">
+        <table>
+          <tbody id="board">
+          <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+          </tr>
+          <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+          </tr>
+          <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+          </tr>
+          <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+          </tr>
+          <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+          </tr>
+          </tbody>
+        </table>
+        <div class="input-container">
+            <input type="text" maxlength="5" minlength="5">
+            <button id="enter">Enter!</button>
+            <button id="restart">Restart!</button>
+        </div>
+        <p id="game-over"></p>
+      </div>
+    </div>
+</body>
+<script>
+    const wordList = ["CRANE", "APPLE", "AGENT", "UNZIP", "CRAZY", "MAKES", "JUMPY", "DIZZY", "BRICK", "RATIO", "ROUTE", "CRASH", "TRUST", "GRASS", "POWER", "ENJOY", "EARTH", "GRADE", "FIXED", "ELITE", "EMPTY", "GRAND", "FLASH", "HUMOR","GHOST", "BLACK", "TRASH", "PASTA", "GREEN", "CLASH", "INNER", "KEBAB", "MOUSE", "ABOVE", "BASTE", "BRIBE", "BEACH", "BEGIN", "BENCH", "CATCH", "CRIME", "CLICK"]
+    let answer = wordList[Math.floor(Math.random()*wordList.length)]; //todo make this random word
+    const board = document.getElementById('board')
+    const textBox = document.querySelector('input')
+    const submitButton = document.getElementById('enter')
+    const gameOverMessage = document.getElementById('game-over')
+    const restart = document.getElementById('restart')
+    let currentGuessNumber = 0
+
+    submitButton.addEventListener('click', function(e){
+        let guess = textBox.value;
+        if (guess.length !== 5){
+            return //don't accept words that aren't 5 letters long
+        }
+        //todo clear the textbox once you hit submit
+        textBox.value = "";
+        //render guess to the board
+        writeGuess(guess) //todo create this function
+        currentGuessNumber++
+        //todo check for win
+        //todo check for loss
+        //check for win
+        if (guess.toUpperCase() === answer.toUpperCase()){
+            gameOverMessage.textContent = 'You won!!!';
+            submitButton.hidden = true;
+            textBox.hidden = true;
+            return
+        }
+        
+        //check for loss
+        if (currentGuessNumber >= board.children.length){
+            gameOverMessage.textContent = `You lost :( The word was ${answer}.`;
+            submitButton.hidden = true;
+            textBox.hidden = true;
+            return
+        }
+    })
+
+    function writeGuess(guess){
+        //build our match array so we easily see what matches
+        let matchArray = buildMatchArray(guess) //todo create function that turns words into arrays
+
+        //indentify the current tr tag
+        let currentGuessRow = board.children[currentGuessNumber];
+        //identify the columns for each letter in that row
+        let columns = currentGuessRow.children
+
+        for (let i = 0; i<matchArray.length; i++){
+            let column = columns[i];
+            column.textContent = guess[i].toUpperCase();
+
+            if (matchArray[i] === 2){ //perfect match
+                column.classList.add('correct');
+            } else if (matchArray[i] === 1){ //in word, wrong spot
+                column.classList.add('in-word');
+            } else {
+                column.classList.add('incorrect'); //no match
+            }
+        }
+    }
+
+    function buildMatchArray(guess){
+        guess = guess.toUpperCase();
+        let answerAsArray = [];
+        let matchArray = [0, 0, 0, 0, 0]; //assume no match to start
+        for (let i = 0; i < answer.length; i++){
+            let letter = answer[i].toUpperCase();
+            answerAsArray.push(letter);
+        }
+
+        //find exact matches
+        for (let i = 0; i < guess.length; i++){
+            let letter = guess[i];
+            if (letter === answer[i]){
+                answerAsArray[i] = null; //remove letter to prevent matching it as yellow, too
+                matchArray[i] = 2; //indicate we found a match
+            }
+        }
+        //find in-word matches and misses
+        for (let i = 0; i < guess.length; i++){
+            let letter = guess[i];
+            let index = answerAsArray.indexOf(letter);
+
+            //if letter not in remaining spot, move on to next letter
+            if (index === -1){
+                continue
+            }
+
+            //remove letter to prevent matching in positions
+            answerAsArray[index] = null;
+            //mark it yellow as it is in the word but not in the correct spot
+            matchArray[i] = 1
+
+        }
+        return matchArray
+    }
+    function resetBoard(){
+        board.innerHTML = "<tr><td></td><td></td><td></td><td></td><td></td></tr>" +
+            "<tr><td></td><td></td><td></td><td></td><td></td></tr>" +
+            "<tr><td></td><td></td><td></td><td></td><td></td></tr>" +
+            "<tr><td></td><td></td><td></td><td></td><td></td></tr>" +
+            "<tr><td></td><td></td><td></td><td></td><td></td></tr>"+
+            "<tr><td></td><td></td><td></td><td></td><td></td></tr>"
+    }
+
+
+
+    restart.addEventListener('click', function(e){
+        resetBoard();
+        gameOverMessage.textContent = "";
+        currentGuessNumber = 0;
+        answer = wordList[Math.floor(Math.random()*wordList.length)];
+        submitButton.hidden = false;
+        textBox.hidden = false;
+    })
+</script>
+</html>
